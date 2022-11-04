@@ -1,3 +1,4 @@
+from codecs import ignore_errors
 from imaplib import Commands
 from pydoc import text
 import telebot
@@ -95,8 +96,9 @@ def stoop(message):
 
 
 
-@bot.message_handler(commands=['Find_User'], content_types=['text'])            #База данных и сам чат
+@bot.message_handler(content_types=['text'])            #База данных и сам чат
 def gog(message):
+    if message.text == "/Find_User":
         markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         webss = types.InlineKeyboardButton('/stop')
         markup.add(webss )
@@ -108,31 +110,31 @@ def gog(message):
             if message.chat.id == All_Id[a][0]:
                 All_Id[a][1] = 1
                 print(All_Id)
+                break   
+    try:
+        vv = []
+        b = 0    
+        while 1 != All_Id[b][1]:
+            b += 1
+            if All_Id[b][0] == message.chat.id:
                 break
-        try:
-            b = 0    
-            while 1 != All_Id[b][1]:
-                b += 1
-                if All_Id[b][0] == message.chat.id:
-                    break
-                elif 1 == All_Id[b][1]:
-                    vv = []
-                    vv.append(message.chat.id)
-                    vv.append(All_Id[b][0])
-                    print(vv)
-                    while len(vv) == 2:
-                        bot.send_message(vv[0],"Собеседник присоединился! Можете общаться!")
-                        bot.send_message(vv[1],"Собеседник присоединился! Можете общаться!")
+            if 1 == All_Id[b][1]:
+                vv.append(message.chat.id)
+                vv.append(All_Id[b][0])
+                print(vv)
+                if len(vv) == 2:
+                    bot.send_message(vv[0],"Собеседник присоединился! Можете общаться!")
+                    bot.send_message(vv[1],"Собеседник присоединился! Можете общаться!")
+                    if message.text != "/stop":
                         if message.chat.id == vv[0]:
                             print(vv[0])
                             bot.send_message(vv[1],message.text)
-                            bot.send_message(vv[1],"Если вам пришло это сообщение то связь вроде-бы налажена:|")
-                        elif message.chat.id != vv[0]:
+                        elif message.chat.id == vv[1]:
                             print(vv[1])
                             bot.send_message(vv[0],message.text)
-                            bot.send_message(vv[0],"Если вам пришло это сообщение то связь вроде-бы налажена:|")
-        except IndexError:
-            bot.send_message(message.chat.id,"Кажется вы одни сейчас ищете общения, не растраивайтесь, подождите немного и попробуйте еще раз ;)")
+
+    except IndexError:
+        bot.send_message(message.chat.id,"Кажется вы одни сейчас ищете общения, не растраивайтесь, подождите немного и Я Вас с кем-нибудь свяжу;)")
 
             
 
