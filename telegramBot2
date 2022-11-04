@@ -1,0 +1,39 @@
+from ast import Break, Dict
+from asyncio.windows_events import NULL
+from imaplib import Commands
+from typing import List
+import telebot
+from telebot import types
+import random
+import json
+
+from telegramBot import All_ID
+
+All_ID={
+"users0":[5434270608,0]
+}
+
+bot=telebot.TeleBot("5716739586:AAEWZgrBkE-FFKMnu_eWMcNch2E1MctLKzM")
+@bot.message_handler(commands=['start'])
+def websit(message):
+    mess=f'Привет {message.from_user.first_name}!, пообщаемся?'
+    markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    website = types.InlineKeyboardButton('/VK_Developer')
+    start = types.InlineKeyboardButton('/Хочу_начать_общение_анонимно!')
+    stop = types.InlineKeyboardButton('/показать')
+    listing = types.InlineKeyboardButton('/стоп')
+    markup.add(website, start, stop, listing)
+    bot.send_message(message.chat.id,mess,reply_markup=markup)
+    
+@bot.message_handler(commands=['VK_Developer'])
+def website(message):
+    markup =types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("Страница РазРаБотЧИкА!",url='https://vk.com/id734513847' ))
+    bot.send_message(message.chat.id,'Перейдите на сайт!',reply_markup=markup)
+@bot.message_handler(commands=['Хочу_начать_общение_анонимно!'],)
+def userr(message):
+    a = 0
+    while message.chat.id != "users" + str(a)[0]:
+        print(1)
+
+bot.polling(none_stop=True)
