@@ -48,7 +48,8 @@ def website(message):
 
 All_Id=[[5421880706,0],[543427068,0] ]
 
-
+interlocutors = {}
+searchers = []
 
 @bot.message_handler(commands=['Show_Developer'])         #Для себя
 def pis(message):
@@ -74,7 +75,6 @@ def userr(message):
                 break
     except IndexError:
         All_Id.append([message.chat.id,0])
-        bot.send_message(message.chat.id,"Отлично, теперь вы в базе данных!")
 
 
 
@@ -103,40 +103,37 @@ def gog(message):
         webss = types.InlineKeyboardButton('/stop')
         markup.add(webss )
         bot.send_message(message.chat.id,"Пока Я ищу Вам общение, напоминаю что если хотите закончить общение нажмите стоп",reply_markup=markup)
-        a = 0
-        while message.chat.id != All_Id[a][0]:
-            a += 1
-            print(a)
-            if message.chat.id == All_Id[a][0]:
-                All_Id[a][1] = 1
-                print(All_Id)
-                break   
+        searchers.append(message.chat.id)
+        print("Searchers", searchers)
+        online_chats_for_me = searchers.copy()
+        online_chats_for_me.remove(message.chat.id)
+
+        print("Online", online_chats_for_me)
+        print("Searchers", searchers)
+        
+        if len(online_chats_for_me) == 0:
+            bot.send_message(message.chat.id,"Кажется вы одни сейчас ищете общения, не растраивайтесь, подождите немного и попробуйте еще раз ;)")
+            return
+        
+        interlocutor = random.choice(online_chats_for_me)
+
+        interlocutors[interlocutor] = message.chat.id
+        interlocutors[message.chat.id] = interlocutor
+
+        bot.send_message(message.chat.id,"Собеседник присоединился! Можете общаться!")
+        bot.send_message(interlocutor,"Собеседник присоединился! Можете общаться!")
+
+        searchers.remove(interlocutor)
+        searchers.remove(message.chat.id)
+
+@bot.message_handler(content_types=['text'])  
+def private_message(message):
     try:
-        vv = []
-        b = 0    
-        while 1 != All_Id[b][1]:
-            b += 1
-            if All_Id[b][0] == message.chat.id:
-                break
-            if 1 == All_Id[b][1]:
-                vv.append(message.chat.id)
-                vv.append(All_Id[b][0])
-                print(vv)
-                if len(vv) == 2:
-                    bot.send_message(vv[0],"Собеседник присоединился! Можете общаться!")
-                    bot.send_message(vv[1],"Собеседник присоединился! Можете общаться!")
-                    if message.text != "/stop":
-                        if message.chat.id == vv[0]:
-                            print(vv[0])
-                            bot.send_message(vv[1],message.text)
-                        elif message.chat.id == vv[1]:
-                            print(vv[1])
-                            bot.send_message(vv[0],message.text)
+        bot.send_message(interlocutors[message.chat.id], message.text)
 
-    except IndexError:
-        bot.send_message(message.chat.id,"Кажется вы одни сейчас ищете общения, не растраивайтесь, подождите немного и Я Вас с кем-нибудь свяжу;)")
-
-            
+        print(f'from: {message.chat.id}; to: {interlocutors[message.chat.id]}, message: {message.text}')
+    except KeyError:
+        print('Без собеседника')
 
 @bot.message_handler(commands=['Back'])         #Возврат
 def piss(message):
@@ -144,8 +141,6 @@ def piss(message):
     ww = types.InlineKeyboardButton('/start')
     mark.add(ww)
     bot.send_message(message.chat.id,"чтобы вернуться нажмите /start",reply_markup=mark)
-
-
 
 #@bot.message_handler(content_types=['text'])            #Интерактив
 #def get_uzer_text(message):
