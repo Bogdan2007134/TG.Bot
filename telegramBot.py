@@ -1,10 +1,35 @@
-from codecs import ignore_errors
+
 from imaplib import Commands
 from pydoc import text
 import telebot
 from telebot import types
+import psycopg2
+from user_id import host, user, db_name, password
 import random
 bot=telebot.TeleBot("5490035526:AAFdwLTw2v1rEmvd8KGZO3igArIVXdqN6EA")
+
+
+
+try:
+    connection = psycopg2.connect(
+        host=host,
+        password=password,
+        user=user,
+        database=db_name
+    )
+    connection.autocommit = True
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT version();"
+        )
+        print(f"Server version; {cursor.fetchone()}")
+        cursor.execute(""f'SELECT second_id FROM users_id WHERE first_id = {5434270608}::TEXT;'"")
+        record = cursor.fetchall()
+        print(record)
+        cursor.execute("SELECT * from users_id")
+        print("Результат", cursor.fetchall())
+except Exception as _ex:
+    print(_ex)
 
 
 
@@ -23,17 +48,7 @@ def wesit(message):
 
 @bot.message_handler(commands=['Help'])             #Блок комманд
 def wesiit(message):
-    bot.send_message(message.chat.id,"Этот бот создан для отработки навыков, просто набора опыта, и по фану в том числе. Он в себе заключает анонимный чат, и маленький интерактив вызывающийся: Фото, Я, Привет, если так же сами скинете свою фотку он ее оценит :) ")
-
-@bot.message_handler(commands=['Pre_start'])             #Блок комманд
-def websit(message):
-    mess=f'Привет {message.from_user.first_name}, пообщаемся?'
-    markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    website = types.InlineKeyboardButton('/VK_Developer')
-    start = types.InlineKeyboardButton('/Messengers')
-    stop = types.InlineKeyboardButton('/Show_Developer')
-    markup.add(website, start, stop, )
-    bot.send_message(message.chat.id,mess,reply_markup=markup)
+    bot.send_message(message.chat.id,"Этот бот создан для отработки навыков, просто набора опыта, и по фану в том числе. Он в себе заключает анонимный чат, если так же сами скинете свою фотку он ее оценит :) ")
 
 
 
@@ -46,14 +61,14 @@ def website(message):
 
 
 
-All_Id=[[5421880706,0],[543427068,0] ]
-
 interlocutors = {}
 searchers = []
 
+
+
 @bot.message_handler(commands=['Show_Developer'])         #Для себя
 def pis(message):
-    print(All_Id)
+    print()
 
 
 
@@ -65,39 +80,39 @@ def userr(message):
     stopi = types.InlineKeyboardButton('/Back')
     markup.add(webs, stopi )
     bot.send_message(message.chat.id,mesi,reply_markup=markup)
-    a = 0
-    try:
-        while message.chat.id != All_Id[a][0]:
-            a += 1
-            if message.chat.id == All_Id[a][0]:
-                All_Id[a][1] = 0
-                print(All_Id)
-                break
-    except IndexError:
-        All_Id.append([message.chat.id,0])
+  
+
+
+@bot.message_handler(commands=['stop'])            #stoping procces
+def goga(message):
+    if message.text == "/stop":
+        print(7)
+        try:
+            interlocutor = interlocutors[message.chat.id]
+            interlocutors.pop(message.chat.id)
+            interlocutors.pop(interlocutor)
+            print(searchers,interlocutors)
+            bot.send_message(message.chat.id,"Собеседник отключен, можете продолжить общение или закончить его на данный момент")
+            mesi =f'Ну что {message.from_user.first_name} начнем общения?'
+            markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+            webs = types.InlineKeyboardButton('/Find_User')
+            stopi = types.InlineKeyboardButton('/Back')
+            markup.add(webs, stopi )
+            bot.send_message(message.chat.id,mesi,reply_markup=markup)
+        except KeyError:
+            mesi =f'Ну что {message.from_user.first_name} начнем общения?'
+            markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+            webs = types.InlineKeyboardButton('/Find_User')
+            stopi = types.InlineKeyboardButton('/start')
+            markup.add(webs, stopi )
+            bot.send_message(message.chat.id,mesi,reply_markup=markup)
+            bot.send_message(message.chat.id,"Мы еще вас ни с кем не соединяли")
 
 
 
-@bot.message_handler(commands=['stop'])           #стопает чат и пользователь потом пассив типо;)
-def stoop(message):
-    markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    webss = types.InlineKeyboardButton('/Find_User')
-    ww = types.InlineKeyboardButton('/start')
-    markup.add(webss, ww)
-    a = 0
-    while message.chat.id != All_Id[a][0]:
-        a += 1
-        print(a)
-        if message.chat.id == All_Id[a][0]:
-            All_Id[a][1] = 0
-            print(All_Id)
-            bot.send_message(message.chat.id,"Чат остановлен! Можете попробывать снова, или вернуться назад!",reply_markup=markup)
-            break
-
-
-
-@bot.message_handler(content_types=['text'])            #База данных и сам чат
+@bot.message_handler(commands=['Find_User'])            #База данных и сам чат
 def gog(message):
+    connection.autocommit = True
     if message.text == "/Find_User":
         markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         webss = types.InlineKeyboardButton('/stop')
@@ -112,61 +127,48 @@ def gog(message):
         print("Searchers", searchers)
         
         if len(online_chats_for_me) == 0:
-            bot.send_message(message.chat.id,"Кажется вы одни сейчас ищете общения, не растраивайтесь, подождите немного и попробуйте еще раз ;)")
+            bot.send_message(message.chat.id,"Кажется вы одни сейчас ищете общения, не растраивайтесь, подождите и возможно кто-то да присоединится ;)")
             return
-        
-        interlocutor = random.choice(online_chats_for_me)
 
-        interlocutors[interlocutor] = message.chat.id
-        interlocutors[message.chat.id] = interlocutor
-
-        bot.send_message(message.chat.id,"Собеседник присоединился! Можете общаться!")
-        bot.send_message(interlocutor,"Собеседник присоединился! Можете общаться!")
+        with connection.cursor() as cursor:
+            interlocutor = random.choice(online_chats_for_me)
+            cursor.execute(
+        ""f'INSERT INTO users_id(first_id, second_id) VALUES({interlocutor}, {message.chat.id});'""
+        )
+            cursor.execute(
+        ""f'INSERT INTO users_id(first_id, second_id) VALUES({message.chat.id}, {interlocutor});'""
+        )
 
         searchers.remove(interlocutor)
         searchers.remove(message.chat.id)
+    
+
 
 @bot.message_handler(content_types=['text'])  
 def private_message(message):
+
     try:
-        bot.send_message(interlocutors[message.chat.id], message.text)
+        connection = psycopg2.connect(
+        host=host,
+        password=password,
+        user=user,
+        database=db_name
+        )
+        connection.autocommit = True
+        with connection.cursor() as cursor:
+            cursor.execute(""f'SELECT second_id FROM users_id WHERE first_id = {message.chat.id}::text;'"")
+            record = cursor.fetchall()
+            print(record)
+            cursor.execute("SELECT * from users_id")
+            print("Результат", cursor.fetchall())
 
-        print(f'from: {message.chat.id}; to: {interlocutors[message.chat.id]}, message: {message.text}')
-    except KeyError:
-        print('Без собеседника')
+            bot.send_message(int(record[0][0]), message.text)
+        
+        bot.send_message(int(record[0][0]),"Собеседник присоединился! Можете общаться!")
+        bot.send_message(message.chat.id,"Собеседник присоединился! Можете общаться!")
 
-@bot.message_handler(commands=['Back'])         #Возврат
-def piss(message):
-    mark =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    ww = types.InlineKeyboardButton('/start')
-    mark.add(ww)
-    bot.send_message(message.chat.id,"чтобы вернуться нажмите /start",reply_markup=mark)
-
-#@bot.message_handler(content_types=['text'])            #Интерактив
-#def get_uzer_text(message):
-#    if message.text == "Я":
-#       bot.send_message(message.chat.id,message, parse_mode='html')
-#    elif message.text == "Фото":
-#        photo = open('sss.png', 'rb')
-#        bot.send_photo(message.chat.id, photo)
-#    elif message.text == "Привет":
-#        for i in range(1):
-#            a = random.randint(0,4)
-#            gg = mass[a]
-#            bot.send_message(message.chat.id, gg)
-#    elif message.text == "Danila":
-#        bot.send_message(message.chat.id,All_ID["Danila_id"])
-#    elif message.text == "Bogdan":
-#       bot.send_message(message.chat.id,All_ID["Bogdan_id"])
-#    elif message.text == "user_id":
-#        All_ID["user_id"] = message.chat.id 
-#        bot.send_message(message.chat.id,All_ID["user_id"])        
-#    elif message.text == "maksim":
-#        bot.send_message(message.chat.id,All_ID["maksim_id"])
-#    elif message.text == "Мой id":
-#        bot.send_message(message.chat.id,f"Твой id:{message.from_user.id}", parse_mode='html')
-#    else:
-#        bot.send_message(message.chat.id,'Такой команды у нас еще нет! Может вы не верно ее ввели?')
+    except psycopg2.InterfaceError as e:
+        print(e)
 
 
 
@@ -182,7 +184,6 @@ All_ID={            #База даных
 "maksim_id": "5421880706",
 "user_id": "0"
 }
-mass = ["И тебе привет!","Здравствуй!","Салют!","Категорически приветствую!","Доброго времени суток!"]
 
 
 
