@@ -77,26 +77,74 @@ def userr(message):
     mesi =f'Ну что {message.from_user.first_name} начнем общения?'
     markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     webs = types.InlineKeyboardButton('/Find_User')
-    stopi = types.InlineKeyboardButton('/Back')
+    stopi = types.InlineKeyboardButton('/start')
     markup.add(webs, stopi )
     bot.send_message(message.chat.id,mesi,reply_markup=markup)
   
-
+first_users = 0
+second_users = 0
 
 @bot.message_handler(commands=['stop'])            #stoping procces
 def goga(message):
     if message.text == "/stop":
         print(7)
         try:
-            interlocutor = interlocutors[message.chat.id]
-            interlocutors.pop(message.chat.id)
-            interlocutors.pop(interlocutor)
-            print(searchers,interlocutors)
-            bot.send_message(message.chat.id,"Собеседник отключен, можете продолжить общение или закончить его на данный момент")
+            connection = psycopg2.connect(
+            host=host,
+            password=password,
+            user=user,
+            database=db_name
+            )
+            connection.autocommit = True
+            with connection.cursor() as cursor:
+                try:
+                    global second_users, first_users
+                    cursor.execute(""f'SELECT second_id FROM users_id WHERE first_id = {message.chat.id}::text;'"")
+                    first_users = cursor.fetchall()
+                    first_users = first_users[0][0]
+                    print(f'[INFO] Добавлен первый айди {first_users[0][0]}')
+                    delete_query_1 = ""f'Delete from users_id where first_id = {message.chat.id}::text;'""
+                    cursor.execute(delete_query_1)
+                    connection.commit()
+                    second_users = message.chat.id
+                    print(f'[INFO] Добавлен второй айди {second_users}')
+                    print("[INFO] Первое айди в первой связке успешно удалено")
+                except IndexError:
+                    print("[INFO] В таблице не найдено значение первого айди в первой связке")
+                try:
+                    delete_query_2 = ""f'Delete from users_id where second_id = {second_users}::text;'""
+                    cursor.execute(delete_query_2)
+                    connection.commit()
+                    print("[INFO] Второе айди в первой связке успешно удалено")
+                except IndexError:
+                    print("[INFO] В таблице не найдено значение второго айди в первой связке")
+                try:
+                    delete_query_3 = ""f'Delete from users_id where first_id = {message.chat.id}::text;'""
+                    cursor.execute(delete_query_3)
+                    connection.commit()
+                    print("[INFO] Первое айди во второй связке успешно удалено")
+                except IndexError:
+                    print("[INFO] В таблице не найдено значение первого айди во второй связке")
+                try:
+                    delete_query_4 = ""f'Delete from users_id where second_id = {second_users}::text;'""
+                    cursor.execute(delete_query_4)
+                    connection.commit()
+                    print("[INFO] Второе айди во второй связке успешно удалено")
+                    if message.chat.id == second_users:
+                        bot.send_message(message.chat.id,"Собеседник отключен, можете продолжить общение или закончить его на данный момент") 
+                        bot.send_message(str(first_users),"Собеседник отключился, можете продолжить общение или закончить его на данный момент")
+                    else:
+                        bot.send_message(message.chat.id,"Собеседник отключен, можете продолжить общение или закончить его на данный момент") 
+                        bot.send_message(second_users,"Собеседник отключился, можете продолжить общение или закончить его на данный момент")
+                    second_users = 0
+                    print("[INFO] Айдишник успешно удален:)")
+                except IndexError:
+                    print("[INFO] В таблице не найдено значение второго айди во второй связке")
+
             mesi =f'Ну что {message.from_user.first_name} начнем общения?'
             markup =types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
             webs = types.InlineKeyboardButton('/Find_User')
-            stopi = types.InlineKeyboardButton('/Back')
+            stopi = types.InlineKeyboardButton('/start')
             markup.add(webs, stopi )
             bot.send_message(message.chat.id,mesi,reply_markup=markup)
         except KeyError:
@@ -138,7 +186,8 @@ def gog(message):
             cursor.execute(
         ""f'INSERT INTO users_id(first_id, second_id) VALUES({message.chat.id}, {interlocutor});'""
         )
-
+        bot.send_message(interlocutor,"Собеседник присоединился! Можете общаться!")
+        bot.send_message(message.chat.id,"Собеседник присоединился! Можете общаться!")
         searchers.remove(interlocutor)
         searchers.remove(message.chat.id)
     
@@ -146,7 +195,6 @@ def gog(message):
 
 @bot.message_handler(content_types=['text'])  
 def private_message(message):
-
     try:
         connection = psycopg2.connect(
         host=host,
@@ -158,17 +206,12 @@ def private_message(message):
         with connection.cursor() as cursor:
             cursor.execute(""f'SELECT second_id FROM users_id WHERE first_id = {message.chat.id}::text;'"")
             record = cursor.fetchall()
-            print(record)
             cursor.execute("SELECT * from users_id")
-            print("Результат", cursor.fetchall())
+            print(f'{message.chat.id} написал {record[0][0]}')
 
             bot.send_message(int(record[0][0]), message.text)
-        
-        bot.send_message(int(record[0][0]),"Собеседник присоединился! Можете общаться!")
-        bot.send_message(message.chat.id,"Собеседник присоединился! Можете общаться!")
-
-    except psycopg2.InterfaceError as e:
-        print(e)
+    except:
+        print("[INFO] Произошла ошибка в одной из строки кода с 190 по 208, или у отправителя нет принимающего")
 
 
 
