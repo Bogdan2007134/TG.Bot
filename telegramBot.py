@@ -228,6 +228,4 @@ All_ID={            #База даных
 "user_id": "0"
 }
 
-
-
 bot.polling(none_stop=True)
